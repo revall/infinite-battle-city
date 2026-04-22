@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import brickUrl from './assets/brick.svg'
 import { GuestbookPage } from './GuestbookPage'
+import MobileControls from './MobileControls'
 
 const GAME_URL = (import.meta.env.VITE_GAME_URL as string | undefined) ?? '/play/'
 
@@ -32,6 +33,7 @@ export default function App() {
 
 function HomePage() {
   const [visits, setVisits] = useState<number | null>(null)
+  const iframeRef = useRef<HTMLIFrameElement | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -171,6 +173,7 @@ function HomePage() {
             }}
           >
             <iframe
+              ref={iframeRef}
               src={GAME_URL}
               title="Battle City Infinite"
               className="block w-full bg-black border-0"
@@ -193,6 +196,9 @@ function HomePage() {
           </div>
         </div>
       </main>
+
+      {/* Mobile touch controls — rendered inline between the game and the badges, only on touch devices */}
+      <MobileControls iframeRef={iframeRef} />
 
       {/* Badges row */}
       <section className="relative w-full max-w-6xl px-4 mt-8 flex flex-wrap items-center justify-center gap-4">
