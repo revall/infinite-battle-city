@@ -61,6 +61,15 @@ describe('tickGame', () => {
     expect(Object.keys(next.bullets).length).toBe(1)
   })
 
+  it('spawns the bullet at the cannon tip, not the tank origin', () => {
+    // Tank at (64, 64) facing right → tank center (72, 72); with CANNON_OUT=6 the tip is (86, 72)
+    const state = baseState({ tanks: { p1: aliveTank('p1', 64, 64) } })
+    const next = tickGame(state, [{ playerId: 'p1', tick: 0, moveDir: null, shoot: true }])
+    const bullet = Object.values(next.bullets)[0]
+    expect(bullet.x).toBe(86)
+    expect(bullet.y).toBe(72)
+  })
+
   it('does not spawn a second bullet if player already has one in flight', () => {
     const state = baseState({
       tanks: { p1: aliveTank('p1') },

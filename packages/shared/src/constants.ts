@@ -15,3 +15,7 @@ export const MAX_PLAYERS = 40
 export const MAX_BULLETS_PER_PLAYER = 1
 
 export const KILL_SCORE = 100
+
+// Cannon dimensions — shared so the renderer draws and the server fires from the same tip
+export const CANNON_WIDTH = 6
+export const CANNON_OUT = 6

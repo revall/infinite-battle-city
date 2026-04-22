@@ -1,11 +1,23 @@
 import { moveTank, moveBullet, destroyTile } from './physics'
-import { MAX_BULLETS_PER_PLAYER, RESPAWN_TICKS, KILL_SCORE } from './constants'
+import { MAX_BULLETS_PER_PLAYER, RESPAWN_TICKS, KILL_SCORE, TANK_SIZE, CANNON_OUT } from './constants'
 import type { GameState, InputEvent, Tank, Bullet, Direction } from './types'
 
 let bulletSeq = 0
 
 function nextBulletId(playerId: string): string {
   return `${playerId}-${++bulletSeq}`
+}
+
+/** Position of the cannon tip — used for both rendering and bullet spawn. */
+export function cannonTip(tank: Tank): { x: number; y: number } {
+  const cx = tank.x + TANK_SIZE / 2
+  const cy = tank.y + TANK_SIZE / 2
+  switch (tank.direction) {
+    case 'up':    return { x: cx, y: tank.y - CANNON_OUT }
+    case 'down':  return { x: cx, y: tank.y + TANK_SIZE + CANNON_OUT }
+    case 'left':  return { x: tank.x - CANNON_OUT, y: cy }
+    case 'right': return { x: tank.x + TANK_SIZE + CANNON_OUT, y: cy }
+  }
 }
 
 export function pickRespawnPoint(
@@ -97,7 +109,8 @@ export function tickGame(state: GameState, inputs: InputEvent[]): GameState {
       if (flying.length < MAX_BULLETS_PER_PLAYER) {
         const id = nextBulletId(pid)
         const cur = tanks[pid]
-        const newBullet: Bullet = { id, ownerId: pid, x: cur.x, y: cur.y, direction: cur.direction }
+        const tip = cannonTip(cur)
+        const newBullet: Bullet = { id, ownerId: pid, x: tip.x, y: tip.y, direction: cur.direction }
         bullets = { ...bullets, [id]: newBullet }
       }
     }

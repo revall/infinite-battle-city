@@ -1,4 +1,4 @@
-import { TILE_SIZE, TANK_SIZE } from '@battle-city/shared'
+import { TILE_SIZE, TANK_SIZE, CANNON_WIDTH, CANNON_OUT } from '@battle-city/shared'
 import type { GameState, TileType, Tank, Bullet } from '@battle-city/shared'
 
 const TILE_COLORS: Record<TileType, string | null> = {
@@ -67,20 +67,22 @@ function drawTank(
   ctx.fillStyle = color
   ctx.fillRect(px, py, TANK_SIZE, TANK_SIZE)
 
-  // Barrel
+  // Cannon — extends CANNON_OUT pixels past the tank edge, CANNON_WIDTH thick
   ctx.fillStyle = '#111'
-  const mid = TANK_SIZE / 2 - 2
-  const bl = TANK_SIZE * 0.55
+  const W = CANNON_WIDTH
+  const OUT = CANNON_OUT
+  const IN = TANK_SIZE / 2 // depth into tank body
+  const mid = TANK_SIZE / 2
   switch (tank.direction) {
-    case 'up':    ctx.fillRect(px + mid, py - bl + TANK_SIZE / 2, 4, bl); break
-    case 'down':  ctx.fillRect(px + mid, py + TANK_SIZE / 2, 4, bl); break
-    case 'left':  ctx.fillRect(px - bl + TANK_SIZE / 2, py + mid, bl, 4); break
-    case 'right': ctx.fillRect(px + TANK_SIZE / 2, py + mid, bl, 4); break
+    case 'up':    ctx.fillRect(px + mid - W / 2, py - OUT, W, IN + OUT); break
+    case 'down':  ctx.fillRect(px + mid - W / 2, py + TANK_SIZE - IN, W, IN + OUT); break
+    case 'left':  ctx.fillRect(px - OUT, py + mid - W / 2, IN + OUT, W); break
+    case 'right': ctx.fillRect(px + TANK_SIZE - IN, py + mid - W / 2, IN + OUT, W); break
   }
 
   // Player name above tank
   if (name) {
-    ctx.font = '9px monospace'
+    ctx.font = '9px "Geist Mono", ui-monospace, monospace'
     ctx.textAlign = 'center'
     ctx.fillStyle = 'rgba(0,0,0,0.7)'
     const tw = ctx.measureText(name).width

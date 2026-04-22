@@ -9,6 +9,7 @@ import type { GameState, InputEvent, Direction } from '@battle-city/shared'
 const SERVER_HZ = 20
 const SUBTICKS = 3
 const ROUND_END_RESET_MS = 10_000
+const IDLE_KICK_MS = 60_000 // disconnect players who don't move/shoot for 1 minute
 
 type ClientMsg =
   | { type: 'join'; name: string }
@@ -31,12 +32,15 @@ function freshState(): GameState {
 export default class Server implements Party.Server {
   state: GameState = freshState()
   inputs = new Map<string, InputEvent>()
+  /** Last wall-clock ms a player sent a non-idle input (or joined). */
+  lastActiveAt = new Map<string, number>()
   interval: ReturnType<typeof setInterval> | null = null
   resetTimeout: ReturnType<typeof setTimeout> | null = null
 
   constructor(readonly party: Party.Room) {}
 
   onConnect(conn: Party.Connection) {
+    this.lastActiveAt.set(conn.id, Date.now())
     conn.send(JSON.stringify({ type: 'welcome', id: conn.id }))
     conn.send(JSON.stringify({ type: 'state', state: this.state }))
     this.startLoop()
@@ -47,6 +51,7 @@ export default class Server implements Party.Server {
     try { msg = JSON.parse(message) } catch { return }
 
     if (msg.type === 'join') {
+      this.lastActiveAt.set(sender.id, Date.now())
       this.state = {
         ...this.state,
         roundPhase: 'playing',
@@ -59,6 +64,8 @@ export default class Server implements Party.Server {
     }
 
     if (msg.type === 'input') {
+      // Only update last-active on real input — idle frames (null + no shoot) don't count
+      if (msg.moveDir !== null || msg.shoot) this.lastActiveAt.set(sender.id, Date.now())
       this.inputs.set(sender.id, {
         playerId: sender.id,
         tick: this.state.tick,
@@ -75,6 +82,7 @@ export default class Server implements Party.Server {
 
   onClose(conn: Party.Connection) {
     this.inputs.delete(conn.id)
+    this.lastActiveAt.delete(conn.id)
     const { [conn.id]: _t, ...tanks } = this.state.tanks
     const { [conn.id]: _p, ...players } = this.state.players
     this.state = { ...this.state, tanks, players }
@@ -97,6 +105,22 @@ export default class Server implements Party.Server {
 
   tick() {
     if (this.state.roundPhase !== 'playing') return
+
+    // Kick idle players (no movement/shoot input for IDLE_KICK_MS).
+    // Purge from state immediately so the scoreboard/HUD drop them on the very next broadcast
+    // — don't wait for c.close() → onClose which has a handshake delay.
+    const now = Date.now()
+    for (const c of this.party.getConnections()) {
+      const last = this.lastActiveAt.get(c.id) ?? now
+      if (now - last > IDLE_KICK_MS) {
+        const { [c.id]: _t, ...tanks } = this.state.tanks
+        const { [c.id]: _p, ...players } = this.state.players
+        this.state = { ...this.state, tanks, players }
+        this.inputs.delete(c.id)
+        this.lastActiveAt.delete(c.id)
+        c.close()
+      }
+    }
 
     // Reconcile players with active connections — reap ghosts whose onClose didn't fire
     const activeIds = new Set<string>()

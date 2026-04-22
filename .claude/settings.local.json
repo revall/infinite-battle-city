@@ -5,7 +5,9 @@
       "Bash(node *)",
       "Bash(xargs grep *)",
       "Bash(pnpm --filter @battle-city/shared test)",
-      "Bash(pnpm build *)"
+      "Bash(pnpm build *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm -r test)"
     ]
   }
 }
