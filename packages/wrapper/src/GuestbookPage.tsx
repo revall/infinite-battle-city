@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import brickUrl from './assets/brick.svg'
 import { navigate } from './App'
+import { NotImplementedDialog, WindowControls, useNotImplemented } from './WindowChrome'
 
 interface Entry {
   id: number
@@ -35,6 +36,7 @@ const TITLEBAR: React.CSSProperties = {
 export function GuestbookPage() {
   const [entries, setEntries] = useState<Entry[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const notImpl = useNotImplemented()
 
   const refresh = () => {
     setLoadError(null)
@@ -78,6 +80,8 @@ export function GuestbookPage() {
 
   return (
     <div className="min-h-full bg-black text-white flex flex-col items-center">
+      <NotImplementedDialog action={notImpl.action} onClose={notImpl.close} />
+
       {/* Starfield scanline */}
       <div
         className="fixed inset-0 pointer-events-none opacity-30"
@@ -125,7 +129,7 @@ export function GuestbookPage() {
 
       {/* Sign form window */}
       <main className="relative w-full max-w-4xl px-4 mt-6">
-        <SignForm onAdded={handleAdded} />
+        <SignForm onAdded={handleAdded} onChromeAction={notImpl.trigger} />
       </main>
 
       {/* Entries list */}
@@ -218,9 +222,10 @@ function GbMarquee() {
 
 interface SignFormProps {
   onAdded: (entry: Entry) => void
+  onChromeAction: (label: string) => void
 }
 
-function SignForm({ onAdded }: SignFormProps) {
+function SignForm({ onAdded, onChromeAction }: SignFormProps) {
   const [name, setName] = useState('')
   const [homepage, setHomepage] = useState('')
   const [location, setLocation] = useState('')
@@ -293,17 +298,7 @@ function SignForm({ onAdded }: SignFormProps) {
           <span className="inline-block w-4 h-4 bg-[#ff00ff] border border-black" />
           <span className="tracking-wide">GUESTBOOK.EXE - SIGN IN</span>
         </div>
-        <div className="flex gap-1">
-          {['_', '▢', '✕'].map((ch) => (
-            <span
-              key={ch}
-              className="inline-flex items-center justify-center w-5 h-5 bg-[#c0c0c0] text-black text-xs leading-none font-bold"
-              style={BUTTON_FRAME}
-            >
-              {ch}
-            </span>
-          ))}
-        </div>
+        <WindowControls onAction={onChromeAction} />
       </div>
 
       <form
