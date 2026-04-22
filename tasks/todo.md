@@ -38,3 +38,8 @@
 ## Post-launch fixes
 - [x] T18: URL-based room sharing — room ID in `?room=<id>` so players can share a link
 - [x] T19: Loading state — show spinner while Jazz initialises; show room URL once ready
+
+## Architecture migration (Jazz → PartyKit)
+- [x] T20: Replace Jazz with PartyKit — server-authoritative Durable Object running the 60 Hz game loop
+- [x] T21: Verify PartyKit migration end-to-end — dev server boots, tank appears, moves, shoots
+- [x] T22: Update SPEC.md to reflect PartyKit architecture (remove Jazz references)
