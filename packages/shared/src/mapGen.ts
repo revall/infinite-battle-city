@@ -25,6 +25,64 @@ const DIRS = [
   { dx: 0, dy: -1 },
 ]
 
+// 4×5 pixel font — only covers the letters needed for FRONTIER TECH HACKATHON.
+// '#' = brick, '.' = empty.
+const FONT_GLYPHS: Record<string, string[]> = {
+  ' ': ['....', '....', '....', '....', '....'],
+  A: ['.##.', '#..#', '####', '#..#', '#..#'],
+  C: ['.###', '#...', '#...', '#...', '.###'],
+  E: ['####', '#...', '###.', '#...', '####'],
+  F: ['####', '#...', '###.', '#...', '#...'],
+  H: ['#..#', '#..#', '####', '#..#', '#..#'],
+  I: ['####', '.##.', '.##.', '.##.', '####'],
+  K: ['#..#', '#.#.', '##..', '#.#.', '#..#'],
+  N: ['#..#', '##.#', '#.##', '#..#', '#..#'],
+  O: ['.##.', '#..#', '#..#', '#..#', '.##.'],
+  R: ['###.', '#..#', '###.', '#.#.', '#..#'],
+  T: ['####', '.##.', '.##.', '.##.', '.##.'],
+}
+const GLYPH_W = 4
+const GLYPH_H = 5
+const GLYPH_GAP = 1
+
+function stampText(
+  tiles: TileType[][],
+  text: string,
+  centerX: number,
+  topY: number,
+): void {
+  const width = text.length * GLYPH_W + (text.length - 1) * GLYPH_GAP
+  const startX = Math.floor(centerX - width / 2)
+
+  // Clear a 1-tile halo around the text so letters stand out from random terrain
+  for (let dy = -1; dy <= GLYPH_H; dy++) {
+    for (let dx = -1; dx <= width; dx++) {
+      const tx = startX + dx
+      const ty = topY + dy
+      if (ty > 0 && ty < GRID_H - 1 && tx > 0 && tx < GRID_W - 1) {
+        tiles[ty][tx] = 'open'
+      }
+    }
+  }
+
+  // Stamp each glyph
+  for (let i = 0; i < text.length; i++) {
+    const glyph = FONT_GLYPHS[text[i]] ?? FONT_GLYPHS[' ']
+    const cx = startX + i * (GLYPH_W + GLYPH_GAP)
+    for (let dy = 0; dy < GLYPH_H; dy++) {
+      for (let dx = 0; dx < GLYPH_W; dx++) {
+        if (glyph[dy][dx] === '#') {
+          const tx = cx + dx
+          const ty = topY + dy
+          if (ty > 0 && ty < GRID_H - 1 && tx > 0 && tx < GRID_W - 1) {
+            tiles[ty][tx] = 'brick'
+          }
+        }
+      }
+    }
+  }
+}
+
 export function generateMap(seed: number): MapData {
   const tiles: TileType[][] = Array.from({ length: GRID_H }, () =>
     new Array<TileType>(GRID_W).fill('open'),
@@ -122,6 +180,12 @@ export function generateMap(seed: number): MapData {
     for (let dx = 0; dx < len && x0 + dx < GRID_W - 1; dx++)
       if (get(x0 + dx, y) === 'open') set(x0 + dx, y, 'ice')
   }
+
+  // Stamp hackathon credit in the centre — two lines of brick letters.
+  // Line 1 is 13 chars × 5 + border = 64 wide; Line 2 is 9 chars × 5 + border = 44 wide.
+  // Centered around y = 64 (5 + 2-row gap + 5 = 12 tall → top row at 58).
+  stampText(tiles, 'FRONTIER TECH', Math.floor(GRID_W / 2), Math.floor(GRID_H / 2) - 6)
+  stampText(tiles, 'HACKATHON',     Math.floor(GRID_W / 2), Math.floor(GRID_H / 2) + 1)
 
   // Spawn points — random sampling with minimum 8-tile distance
   const PASSABLE: TileType[] = ['open', 'ice', 'tree']
