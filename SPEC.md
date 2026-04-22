@@ -37,10 +37,10 @@ Target users: casual gamers wanting a quick nostalgic competitive session in a b
 ## 3. Tech Stack
 
 - **Frontend**: React 18 + TypeScript, HTML5 Canvas (imperative draw loop), Zustand (local UI only), Vite
-- **Sync**: [Jazz](https://jazz.tools/) (`jazz-tools`, `jazz-react`) via Jazz Cloud
-- **Architecture**: host-authority — room creator runs the 60 Hz physics loop, writes `GameState` to a Jazz `CoMap`; other clients read and render; each client writes inputs to their own Jazz `CoStream`; host migration on disconnect
-- **Deployment**: static site only (no server); Vite build → Vercel/Netlify
-- **Monorepo**: `packages/shared` (pure types + physics), `packages/client` (React + Jazz)
+- **Sync**: WebSockets via [PartyKit](https://partykit.io) (Cloudflare Durable Objects under the hood), `partysocket` client
+- **Architecture**: server-authoritative — the Durable Object runs the game loop at 20 Hz with 3 physics sub-ticks per interval (60 Hz physics resolution); clients send `InputEvent` messages, receive `GameState` snapshots, and render
+- **Deployment**: client as static site (Vite → Vercel/Netlify); server via `partykit deploy` (Cloudflare edge)
+- **Monorepo**: `packages/shared` (pure types, physics, `tickGame`), `packages/client` (React + WebSocket), `party/index.ts` (PartyKit server)
 
 ---
 
@@ -49,16 +49,15 @@ Target users: casual gamers wanting a quick nostalgic competitive session in a b
 - TypeScript strict mode, no `any`
 - Shared types in `packages/shared` only — no browser or Node APIs there
 - Plain objects + pure functions for game entities and physics (no classes)
-- Jazz schema defined once in `jazz/schema.ts`; no Jazz objects constructed elsewhere
-- Single `requestAnimationFrame` loop; no React state updates inside draw loop
+- Message protocol is JSON with a `type` discriminant; defined in `packages/shared` and imported by both client and server
+- Single `requestAnimationFrame` loop on the client; no React state updates inside draw loop
 
 ---
 
 ## 5. Testing
 
-- Vitest unit tests on `packages/shared` (physics, collision, tile destruction)
-- Vitest tests on `hostLoop.ts` (tick behavior, scoring, respawn)
-- 80% coverage target on both
+- Vitest unit tests on `packages/shared` (physics, collision, tile destruction, `tickGame`, map generation)
+- 80% coverage target on `packages/shared`
 - No browser automation for v1 — manual smoke test checklist
 
 ---
@@ -66,14 +65,14 @@ Target users: casual gamers wanting a quick nostalgic competitive session in a b
 ## 6. Boundaries
 
 ### Always
-- All game state mutations run in the host's physics loop; other clients are display-only
-- Validate Jazz input stream entries in the host loop before applying
-- Keep `packages/shared` free of browser/Node APIs
+- All game state mutations run in the PartyKit server (Durable Object); clients are display-only
+- Validate incoming client messages in `onMessage` before applying to state
+- Keep `packages/shared` free of browser/Node APIs so it runs in both the browser and the Cloudflare Worker runtime
 
 ### Ask first
 - Database or persistent accounts
 - Game engine (Phaser, Pixi)
-- Dedicated Node.js server
+- Multi-room support (currently single global room at `room=main`)
 - Mobile/touch, spectator mode, team/co-op modes
 
 ### Never

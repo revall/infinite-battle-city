@@ -1,0 +1,5 @@
+{
+  "name": "battle-city",
+  "main": "party/index.ts",
+  "compatibilityDate": "2026-04-22"
+}
