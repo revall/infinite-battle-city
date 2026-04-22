@@ -69,7 +69,7 @@ export default function HUD({ state, localPlayerId }: Props) {
 
 const base: React.CSSProperties = {
   position: 'fixed',
-  fontFamily: '"Geist Mono", ui-monospace, monospace',
+  fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
   pointerEvents: 'none',
 }
 

@@ -66,7 +66,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
-    fontFamily: '"Geist Mono", ui-monospace, monospace',
+    fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
   } as React.CSSProperties,
   card: {
     background: '#111',
@@ -87,7 +87,7 @@ const styles = {
     border: 'none',
     color: '#111',
     cursor: 'pointer',
-    fontFamily: '"Geist Mono", ui-monospace, monospace',
+    fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
     fontWeight: 'bold',
     letterSpacing: 2,
   } as React.CSSProperties,

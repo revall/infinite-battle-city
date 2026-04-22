@@ -120,10 +120,10 @@ const styles = {
     position: 'fixed' as const, inset: 0, display: 'flex',
     alignItems: 'center', justifyContent: 'center', background: '#111',
   },
-  loadingText: { color: '#f5c518', fontFamily: '"Geist Mono", ui-monospace, monospace', fontSize: 24, letterSpacing: 4 },
+  loadingText: { color: '#f5c518', fontFamily: '"Geist Pixel Square", ui-monospace, monospace', fontSize: 24, letterSpacing: 4 },
   shareBtn: {
     position: 'fixed' as const, bottom: 12, right: 12, padding: '6px 14px',
     background: 'rgba(0,0,0,0.7)', border: '1px solid #555',
-    color: '#ccc', fontFamily: '"Geist Mono", ui-monospace, monospace', fontSize: 12, cursor: 'pointer',
+    color: '#ccc', fontFamily: '"Geist Pixel Square", ui-monospace, monospace', fontSize: 12, cursor: 'pointer',
   },
 }
