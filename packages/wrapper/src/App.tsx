@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import brickUrl from './assets/brick.svg'
 import { GuestbookPage } from './GuestbookPage'
+import { QRPage } from './QRPage'
 import { NotImplementedDialog, WindowControls, useNotImplemented } from './WindowChrome'
 
 const GAME_URL = (import.meta.env.VITE_GAME_URL as string | undefined) ?? '/play/'
@@ -28,6 +29,7 @@ export function navigate(to: string) {
 export default function App() {
   const path = useRoute()
   if (path === '/guestbook') return <GuestbookPage />
+  if (path === '/qr') return <QRPage />
   return <HomePage />
 }
 
