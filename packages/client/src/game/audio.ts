@@ -2,7 +2,24 @@
 // AudioContext must be created/resumed after a user gesture (browser autoplay policy);
 // the first space-bar press from the player satisfies that.
 
+import startUrl from '../assets/start.mp3'
+import gameOverUrl from '../assets/game-over.mp3'
+
 let ctx: AudioContext | null = null
+
+function playSample(url: string): void {
+  const a = new Audio(url)
+  a.volume = 0.8
+  void a.play().catch(() => {})
+}
+
+export function playStart(): void {
+  playSample(startUrl)
+}
+
+export function playGameOver(): void {
+  playSample(gameOverUrl)
+}
 
 function getCtx(): AudioContext | null {
   if (ctx) return ctx

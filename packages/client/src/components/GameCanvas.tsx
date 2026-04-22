@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { renderFrame } from '../game/renderer.ts'
-import { playPiw, playBoom, playBash } from '../game/audio.ts'
+import { playPiw, playBoom, playBash, playStart, playGameOver } from '../game/audio.ts'
 import { useGameSocket } from '../ws/useGameSocket.ts'
 import { useRoomStore } from '../store/roomStore.ts'
 import HUD from './HUD.tsx'
@@ -24,8 +24,10 @@ export default function GameCanvas() {
     bullets: new Set<string>(),
     aliveTanks: {} as Record<string, boolean>,
     brickCount: 0,
+    roundPhase: '' as string,
   })
   const seenFirstStateRef = useRef(false)
+  const startPlayedForRoundRef = useRef(false)
   useEffect(() => {
     if (!gameState) return
     const currentBullets = new Set(Object.keys(gameState.bullets))
@@ -33,6 +35,20 @@ export default function GameCanvas() {
     for (const [id, t] of Object.entries(gameState.tanks)) currentAlive[id] = t.alive
     let currentBrickCount = 0
     for (const row of gameState.map) for (const t of row) if (t === 'brick') currentBrickCount++
+
+    // Reset the once-per-round start flag when leaving the playing phase.
+    if (gameState.roundPhase !== 'playing') startPlayedForRoundRef.current = false
+
+    // start — local player present in an active round (first join or new round after rematch).
+    if (
+      !startPlayedForRoundRef.current &&
+      gameState.roundPhase === 'playing' &&
+      localPlayerId &&
+      gameState.tanks[localPlayerId]
+    ) {
+      playStart()
+      startPlayedForRoundRef.current = true
+    }
 
     if (seenFirstStateRef.current) {
       const prev = prevSnapshotRef.current
@@ -44,7 +60,10 @@ export default function GameCanvas() {
       // boom — tanks that went alive → dead
       let booms = 0
       for (const [id, alive] of Object.entries(currentAlive)) {
-        if (prev.aliveTanks[id] === true && !alive && booms < 3) { playBoom(); booms++ }
+        if (prev.aliveTanks[id] === true && !alive) {
+          if (booms < 3) { playBoom(); booms++ }
+          if (id === localPlayerId) playGameOver()
+        }
       }
       // bash — brick count dropped
       if (currentBrickCount < prev.brickCount) {
@@ -53,9 +72,14 @@ export default function GameCanvas() {
       }
     }
 
-    prevSnapshotRef.current = { bullets: currentBullets, aliveTanks: currentAlive, brickCount: currentBrickCount }
+    prevSnapshotRef.current = {
+      bullets: currentBullets,
+      aliveTanks: currentAlive,
+      brickCount: currentBrickCount,
+      roundPhase: gameState.roundPhase,
+    }
     seenFirstStateRef.current = true
-  }, [gameState])
+  }, [gameState, localPlayerId])
 
   // Canvas resize
   useEffect(() => {
