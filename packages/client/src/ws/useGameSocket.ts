@@ -19,7 +19,9 @@ export function useGameSocket(playerName: string) {
   }, [])
 
   useEffect(() => {
-    const host = (import.meta.env.VITE_PARTYKIT_HOST as string) ?? 'localhost:1999'
+    const host =
+      (import.meta.env.VITE_PARTYKIT_HOST as string | undefined) ??
+      window.location.host
     const socket = new PartySocket({ host, room: ROOM })
     socketRef.current = socket
 

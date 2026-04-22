@@ -4,7 +4,7 @@ import GameCanvas from './components/GameCanvas.tsx'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/play">
       <Routes>
         <Route path="/" element={<Lobby />} />
         <Route path="/game" element={<GameCanvas />} />
