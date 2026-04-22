@@ -1,9 +1,36 @@
 import { useEffect, useState } from 'react'
 import brickUrl from './assets/brick.svg'
+import { GuestbookPage } from './GuestbookPage'
 
 const GAME_URL = (import.meta.env.VITE_GAME_URL as string | undefined) ?? '/play/'
 
+function normalizePath(p: string): string {
+  if (p.length > 1 && p.endsWith('/')) return p.slice(0, -1)
+  return p
+}
+
+function useRoute(): string {
+  const [path, setPath] = useState(() => normalizePath(window.location.pathname))
+  useEffect(() => {
+    const onPop = () => setPath(normalizePath(window.location.pathname))
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+  return path
+}
+
+export function navigate(to: string) {
+  window.history.pushState(null, '', to)
+  window.dispatchEvent(new PopStateEvent('popstate'))
+}
+
 export default function App() {
+  const path = useRoute()
+  if (path === '/guestbook') return <GuestbookPage />
+  return <HomePage />
+}
+
+function HomePage() {
   const [visits, setVisits] = useState<number | null>(null)
 
   useEffect(() => {
@@ -178,8 +205,17 @@ export default function App() {
       <footer className="relative font-sys text-[11px] text-neutral-400 py-8 text-center px-4">
         <p>
           © 2026 BATTLE CITY INFINITE · MADE FOR THE Y2K HACKATHON ·{' '}
-          <span className="text-[#00ffff] underline">sign guestbook</span> ·{' '}
-          <span className="text-[#00ffff] underline">webring</span>
+          <a
+            href="/guestbook"
+            onClick={(e) => {
+              e.preventDefault()
+              navigate('/guestbook')
+            }}
+            className="text-[#00ffff] underline hover:text-yellow-300"
+          >
+            sign guestbook
+          </a>{' '}
+          · <span className="text-[#00ffff] underline">webring</span>
         </p>
         <p className="mt-1 italic">&lt;HAND-CODED IN NOTEPAD ON WINDOWS 98&gt;</p>
       </footer>
