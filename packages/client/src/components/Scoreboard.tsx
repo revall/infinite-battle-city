@@ -8,7 +8,10 @@ interface Props {
 }
 
 export default function Scoreboard({ state, localPlayerId, isHost, onRematch }: Props) {
-  const ranked = Object.values(state.tanks).sort((a, b) => b.score - a.score)
+  // Connected players only (disconnected players are removed from state.players)
+  const ranked = Object.values(state.tanks)
+    .filter((t) => state.players[t.id])
+    .sort((a, b) => b.score - a.score)
 
   return (
     <div style={styles.overlay}>

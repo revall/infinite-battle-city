@@ -20,8 +20,9 @@ export default function HUD({ state, localPlayerId }: Props) {
     ? Math.max(0, Math.ceil((tank.respawnTick - state.tick) / 60))
     : null
 
-  // Top-5 scores for the corner leaderboard
+  // Top-5 scores for the corner leaderboard — connected players only
   const ranked = Object.values(state.tanks)
+    .filter((t) => state.players[t.id])
     .sort((a, b) => b.score - a.score)
     .slice(0, 5)
 

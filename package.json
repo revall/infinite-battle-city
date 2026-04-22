@@ -5,12 +5,17 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "dev": "pnpm --filter @battle-city/client dev",
+    "server": "partykit dev",
     "lint": "eslint packages/*/src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@battle-city/shared": "workspace:*"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "eslint": "^8.57.0",
+    "partykit": "^0.0.112",
     "prettier": "^3.3.0",
     "typescript": "^5.5.0"
   }

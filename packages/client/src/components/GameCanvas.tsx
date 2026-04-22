@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { renderFrame } from '../game/renderer.ts'
-import { useGameSync } from '../jazz/useGameSync.ts'
+import { useGameSocket } from '../ws/useGameSocket.ts'
 import { useRoomStore } from '../store/roomStore.ts'
 import HUD from './HUD.tsx'
 import Scoreboard from './Scoreboard.tsx'
@@ -8,10 +8,9 @@ import Scoreboard from './Scoreboard.tsx'
 export default function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const playerName = useRoomStore((s) => s.playerName)
-  const { gameState, localPlayerId, rematch, isHost, roomUrl } = useGameSync(playerName)
+  const { gameState, localPlayerId, rematch, isHost, roomUrl } = useGameSocket(playerName)
   const [urlCopied, setUrlCopied] = useState(false)
 
-  // Refs so the RAF loop always reads the latest values without being recreated
   const gameStateRef = useRef(gameState)
   const localPlayerIdRef = useRef(localPlayerId)
   useEffect(() => { gameStateRef.current = gameState }, [gameState])
@@ -27,24 +26,21 @@ export default function GameCanvas() {
     return () => window.removeEventListener('resize', resize)
   }, [])
 
-  // Single permanent RAF loop — reads from refs so it never needs to restart
+  // Single permanent RAF loop
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')!
     let rafId: number
     const loop = () => {
-      if (gameStateRef.current) {
-        renderFrame(ctx, gameStateRef.current, localPlayerIdRef.current)
-      }
+      if (gameStateRef.current) renderFrame(ctx, gameStateRef.current, localPlayerIdRef.current)
       rafId = requestAnimationFrame(loop)
     }
     rafId = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(rafId)
-  }, []) // runs once — state accessed via refs
+  }, [])
 
   const copyUrl = () => {
-    if (!roomUrl) return
     navigator.clipboard.writeText(roomUrl).then(() => {
       setUrlCopied(true)
       setTimeout(() => setUrlCopied(false), 2000)
@@ -66,15 +62,10 @@ export default function GameCanvas() {
       )}
 
       {gameState && gameState.roundPhase === 'ended' && (
-        <Scoreboard
-          state={gameState}
-          localPlayerId={localPlayerId}
-          isHost={isHost}
-          onRematch={rematch}
-        />
+        <Scoreboard state={gameState} localPlayerId={localPlayerId} isHost={isHost} onRematch={rematch} />
       )}
 
-      {roomUrl && gameState?.roundPhase !== 'ended' && (
+      {gameState?.roundPhase !== 'ended' && (
         <button style={styles.shareBtn} onClick={copyUrl} title="Copy invite link">
           {urlCopied ? '✓ Copied!' : '🔗 Invite'}
         </button>
