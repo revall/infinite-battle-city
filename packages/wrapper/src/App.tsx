@@ -33,6 +33,8 @@ export default function App() {
 
   return (
     <div className="min-h-full bg-black text-white flex flex-col items-center">
+      <WelcomeDialog />
+
       {/* Starfield scanline vibe */}
       <div
         className="fixed inset-0 pointer-events-none opacity-30"
@@ -184,6 +186,97 @@ function MarqueeStrip() {
         </span>
       ))}
     </span>
+  )
+}
+
+function WelcomeDialog() {
+  const [open, setOpen] = useState(true)
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === 'Enter') setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcome-title"
+        className="w-[min(440px,100%)] bg-[#c0c0c0] p-1 text-black"
+        style={{
+          boxShadow:
+            'inset 1px 1px 0 #ffffff, inset -1px -1px 0 #000000, inset 2px 2px 0 #dfdfdf, inset -2px -2px 0 #808080, 4px 4px 0 #000',
+        }}
+      >
+        <div
+          id="welcome-title"
+          className="flex items-center justify-between px-1.5 py-1 text-white font-sys font-bold text-sm"
+          style={{ backgroundImage: 'linear-gradient(90deg, #000080 0%, #1084d0 100%)' }}
+        >
+          <span className="tracking-wide">SYSTEM NOTICE</span>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Close"
+            className="inline-flex items-center justify-center w-5 h-5 bg-[#c0c0c0] text-black text-xs leading-none font-bold"
+            style={{ boxShadow: 'inset 1px 1px 0 #ffffff, inset -1px -1px 0 #404040' }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="flex gap-4 items-start p-4 font-sys text-[13px] leading-snug">
+          <div
+            className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-2xl italic"
+            style={{
+              fontFamily: '"Times New Roman", Times, serif',
+              backgroundImage:
+                'radial-gradient(circle at 30% 30%, #8ad6ff 0%, #1a6fd4 55%, #082a66 100%)',
+              textShadow: '1px 1px 0 #000',
+            }}
+          >
+            i
+          </div>
+          <div className="space-y-2">
+            <p className="font-bold">Hello, traveler from the future! 👋</p>
+            <p>
+              This site has been optimized for{' '}
+              <span className="font-bold">Internet Explorer 5.5</span> at{' '}
+              <span className="font-bold">800×600</span> resolution.
+            </p>
+            <p className="text-[12px] text-[#404040]">
+              Your browser appears to be from the year 2026 or later. Some animated GIFs may
+              render too smoothly. Thank you for your patience.
+            </p>
+          </div>
+        </div>
+
+        <div
+          className="flex justify-end gap-2 px-4 pb-4 pt-1"
+          style={{ borderTop: '1px solid #808080' }}
+        >
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            autoFocus
+            className="font-sys text-[13px] px-6 py-1 bg-[#c0c0c0] text-black"
+            style={{
+              boxShadow:
+                'inset 1px 1px 0 #ffffff, inset -1px -1px 0 #000000, inset 2px 2px 0 #dfdfdf, inset -2px -2px 0 #808080',
+            }}
+          >
+            <u>O</u>K
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
