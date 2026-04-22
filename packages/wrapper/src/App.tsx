@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import brickUrl from './assets/brick.svg'
 import { GuestbookPage } from './GuestbookPage'
+import { NotImplementedDialog, WindowControls, useNotImplemented } from './WindowChrome'
 
 const GAME_URL = (import.meta.env.VITE_GAME_URL as string | undefined) ?? '/play/'
 
@@ -32,6 +33,7 @@ export default function App() {
 
 function HomePage() {
   const [visits, setVisits] = useState<number | null>(null)
+  const notImpl = useNotImplemented()
 
   useEffect(() => {
     let cancelled = false
@@ -74,6 +76,7 @@ function HomePage() {
   return (
     <div className="min-h-full bg-black text-white flex flex-col items-center">
       <WelcomeDialog />
+      <NotImplementedDialog action={notImpl.action} onClose={notImpl.close} />
 
       {/* Starfield scanline vibe */}
       <div
@@ -135,20 +138,7 @@ function HomePage() {
               <span className="inline-block w-4 h-4 bg-yellow-300 border border-black" />
               <span className="tracking-wide">BATTLECITY.EXE - MULTIPLAYER ROOM</span>
             </div>
-            <div className="flex gap-1">
-              {['_', '▢', '✕'].map((ch) => (
-                <span
-                  key={ch}
-                  className="inline-flex items-center justify-center w-5 h-5 bg-[#c0c0c0] text-black text-xs leading-none font-bold"
-                  style={{
-                    boxShadow:
-                      'inset 1px 1px 0 #ffffff, inset -1px -1px 0 #404040',
-                  }}
-                >
-                  {ch}
-                </span>
-              ))}
-            </div>
+            <WindowControls onAction={notImpl.trigger} />
           </div>
 
           {/* Menu bar */}
