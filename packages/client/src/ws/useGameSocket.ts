@@ -39,8 +39,18 @@ export function useGameSocket(playerName: string) {
       }
     })
 
-    const { getInput, attach } = inputRef.current
+    const { getInput, attach, press, release } = inputRef.current
     const detach = attach()
+
+    // Accept touch input from the parent wrapper via postMessage — the mobile
+    // overlay lives outside the iframe, so it can't reach `inputRef` directly.
+    const onMessage = (e: MessageEvent) => {
+      const d = e.data as { type?: string; code?: string } | null
+      if (!d || typeof d !== 'object') return
+      if (d.type === 'input-press' && typeof d.code === 'string') press(d.code)
+      else if (d.type === 'input-release' && typeof d.code === 'string') release(d.code)
+    }
+    window.addEventListener('message', onMessage)
 
     const inputLoop = setInterval(() => {
       const { moveDir, shoot } = getInput()
@@ -50,6 +60,7 @@ export function useGameSocket(playerName: string) {
     return () => {
       clearInterval(inputLoop)
       detach()
+      window.removeEventListener('message', onMessage)
       socket.close()
     }
   }, []) // runs once — nameRef used inside so no dep needed

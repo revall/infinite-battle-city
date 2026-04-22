@@ -16,10 +16,15 @@ const KEY_DIR: Record<string, Direction> = {
   KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right',
 }
 
-export function createInputHandler(): {
+export interface InputHandler {
   getInput: () => InputState
   attach: () => () => void
-} {
+  /** Inject a key-down (used by touch controls to reuse the same held set). */
+  press: (code: string) => void
+  release: (code: string) => void
+}
+
+export function createInputHandler(): InputHandler {
   const held = new Set<string>()
 
   const onKeyDown = (e: KeyboardEvent) => { held.add(e.code); if (KEY_MAP[e.code]) e.preventDefault() }
@@ -43,5 +48,10 @@ export function createInputHandler(): {
     }
   }
 
-  return { getInput, attach }
+  return {
+    getInput,
+    attach,
+    press: (code) => held.add(code),
+    release: (code) => held.delete(code),
+  }
 }

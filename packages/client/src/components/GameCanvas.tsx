@@ -111,6 +111,7 @@ export default function GameCanvas() {
           {urlCopied ? '✓ Copied!' : '🔗 Invite'}
         </button>
       )}
+
     </>
   )
 }
