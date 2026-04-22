@@ -1,0 +1,32 @@
+@font-face {
+  font-family: 'Geist Pixel Square';
+  src: url('./assets/fonts/GeistPixel-Square.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Geist Pixel Square', ui-monospace, monospace;
+  overflow: hidden;
+  image-rendering: pixelated;
+}
+
+input,
+button {
+  font-family: inherit;
+}

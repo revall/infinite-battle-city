@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import brickUrl from './assets/brick.svg'
 
-const GAME_URL = (import.meta.env.VITE_GAME_URL as string | undefined) ?? 'about:blank'
+const GAME_URL = (import.meta.env.VITE_GAME_URL as string | undefined) ?? '/play/'
 
 export default function App() {
   const [visits, setVisits] = useState<number | null>(null)
@@ -11,13 +11,14 @@ export default function App() {
   }, [])
 
   const brickStyle = {
-    backgroundImage: `url(${brickUrl})`,
-    backgroundSize: '0.18em 0.09em',
+    backgroundImage: `url("${brickUrl}")`,
+    backgroundSize: '0.32em 0.16em',
     backgroundRepeat: 'repeat',
     WebkitBackgroundClip: 'text',
     backgroundClip: 'text',
     color: 'transparent',
     letterSpacing: '0.04em',
+    fontWeight: 700,
   } as const
 
   const chromeStyle = {
