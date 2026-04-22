@@ -7,7 +7,20 @@ export default function App() {
   const [visits, setVisits] = useState<number | null>(null)
 
   useEffect(() => {
-    setVisits(133742 + Math.floor(Math.random() * 999))
+    let cancelled = false
+    fetch('/api/visits', { method: 'POST' })
+      .then((r) => (r.ok ? (r.json() as Promise<{ count: number }>) : null))
+      .then((data) => {
+        if (cancelled) return
+        if (data && typeof data.count === 'number') setVisits(data.count)
+        else setVisits(133742 + Math.floor(Math.random() * 999))
+      })
+      .catch(() => {
+        if (!cancelled) setVisits(133742 + Math.floor(Math.random() * 999))
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const brickStyle = {

@@ -14,3 +14,9 @@ class_name = "GameRoom"
 [[migrations]]
 tag = "v1"
 new_classes = ["GameRoom"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "battle-city-stats"
+# Replace with the real id from `wrangler d1 create battle-city-stats`. Local dev works regardless.
+database_id = "7df076de-61a9-41b0-8d31-a34fc9f13019"
