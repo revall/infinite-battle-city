@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm install *)",
+      "Bash(node *)",
+      "Bash(xargs grep *)",
+      "Bash(pnpm --filter @battle-city/shared test)",
+      "Bash(pnpm build *)"
+    ]
+  }
+}

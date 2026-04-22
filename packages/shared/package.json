@@ -1,0 +1,16 @@
+{
+  "name": "@battle-city/shared",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run --coverage --passWithNoTests"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.1.0"
+  }
+}
