@@ -85,7 +85,7 @@ export default function Lobby() {
       if (!res.ok) throw new Error('Server error')
       const { roomId } = await res.json() as { roomId: string }
       setRoom(roomId, 'private')
-      const url = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomId)}`
+      const url = `${window.location.origin}${import.meta.env.BASE_URL}?room=${encodeURIComponent(roomId)}`
       setInviteUrl(url)
     } catch {
       setError('Could not reach server')

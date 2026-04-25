@@ -95,7 +95,7 @@ export function useGameSocket(playerName: string, roomId: string | null) {
   }, [roomId, setRoom]) // reconnect when roomId changes
 
   const roomUrl = roomId
-    ? `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomId)}`
+    ? `${window.location.origin}${import.meta.env.BASE_URL}?room=${encodeURIComponent(roomId)}`
     : window.location.href
 
   return { gameState, localPlayerId, rematch, isHost: true, roomUrl }
