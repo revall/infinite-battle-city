@@ -7,7 +7,9 @@
       "Bash(pnpm --filter @battle-city/shared test)",
       "Bash(pnpm build *)",
       "Bash(pnpm test *)",
-      "Bash(pnpm -r test)"
+      "Bash(pnpm -r test)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

@@ -3,7 +3,7 @@
 ## 1. Objective
 
 Browser-based online multiplayer free-for-all remake of NES Battle City.
-Up to 40 players connect, fight on a large destructible map, and compete for most kills.
+Players join public rooms or create private rooms shared via invite link, fight on a large destructible map, and compete for most kills.
 Target users: casual gamers wanting a quick nostalgic competitive session in a browser tab.
 
 ---
@@ -11,10 +11,13 @@ Target users: casual gamers wanting a quick nostalgic competitive session in a b
 ## 2. Core Features
 
 ### Lobby
-- Single screen: enter a name, then join immediately
-- Single global room — all players share the same game
-- Game starts as soon as the first player connects; latecomers spawn in mid-round
-- Map is generated once when the first player connects; persists until round ends
+- Single screen: enter a name, then choose a room
+- **Two room modes:**
+  - **Public rooms** — auto-created by the server when all existing rooms are full (max 40 players each); player can browse a live room list and pick one, or click "Auto-assign" to be placed in the least-full available room
+  - **Private rooms** — player clicks "Create private room"; server generates a short random code (e.g. `ABC-123`); player shares the URL `/?room=ABC-123` to invite others; room does not appear in the public room list
+- Game starts as soon as the first player connects to a room; latecomers spawn in mid-round
+- Map is generated once when the first player connects to a room; persists until round ends
+- A room is dissolved when all players have left
 
 ### Gameplay
 - Free-for-all: 5-minute rounds, most kills wins
@@ -37,10 +40,10 @@ Target users: casual gamers wanting a quick nostalgic competitive session in a b
 ## 3. Tech Stack
 
 - **Frontend**: React 18 + TypeScript, HTML5 Canvas (imperative draw loop), Zustand (local UI only), Vite
-- **Sync**: WebSockets via [PartyKit](https://partykit.io) (Cloudflare Durable Objects under the hood), `partysocket` client
-- **Architecture**: server-authoritative — the Durable Object runs the game loop at 20 Hz with 3 physics sub-ticks per interval (60 Hz physics resolution); clients send `InputEvent` messages, receive `GameState` snapshots, and render
-- **Deployment**: client as static site (Vite → Vercel/Netlify); server via `partykit deploy` (Cloudflare edge)
-- **Monorepo**: `packages/shared` (pure types, physics, `tickGame`), `packages/client` (React + WebSocket), `party/index.ts` (PartyKit server)
+- **Sync**: Native WebSockets; `ws` library on the server, native `WebSocket` on the client
+- **Architecture**: server-authoritative — `packages/server` runs one Node.js process; each room runs its own `setInterval` game loop at 20 Hz with 3 physics sub-ticks (60 Hz physics resolution); clients send `InputEvent` messages, receive `GameState` snapshots, and render; rooms are kept in a server-side `Map` and dissolved when empty
+- **Deployment**: client as static site (Vite → any static host); server as a persistent Node.js process on any host that supports long-lived TCP connections (Fly.io, Railway, Render, a VPS, bare metal, etc.); server address configured via `VITE_WS_URL` env var on the client
+- **Monorepo**: `packages/shared` (pure types, physics, `tickGame`), `packages/client` (React + WebSocket), `packages/server` (Node.js + `ws`, room manager, game loops)
 
 ---
 
@@ -72,7 +75,7 @@ Target users: casual gamers wanting a quick nostalgic competitive session in a b
 ### Ask first
 - Database or persistent accounts
 - Game engine (Phaser, Pixi)
-- Multi-room support (currently single global room at `room=main`)
+- Private room host controls (kick, manual round start, settings)
 - Mobile/touch, spectator mode, team/co-op modes
 
 ### Never

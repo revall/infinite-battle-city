@@ -1,5 +1,5 @@
 // Integration tests for the server-side game flow:
-// verifies the sequence of state transitions the PartyKit server produces
+// verifies the sequence of state transitions the game server produces
 // when clients join, send input, and trigger rematch.
 import { describe, it, expect } from 'vitest'
 import { tickGame, spawnTankForPlayer } from './gameLoop'

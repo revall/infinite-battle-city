@@ -8,14 +8,6 @@ directory = "./dist"
 binding = "ASSETS"
 run_worker_first = true
 
-[[durable_objects.bindings]]
-name = "GAME"
-class_name = "GameRoom"
-
-[[migrations]]
-tag = "v1"
-new_classes = ["GameRoom"]
-
 [[d1_databases]]
 binding = "DB"
 database_name = "battle-city-stats"

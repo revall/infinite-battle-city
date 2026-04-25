@@ -1,15 +1,7 @@
-import { GameRoom } from './game-room.ts'
-
-export { GameRoom }
-
 interface Env {
   ASSETS: Fetcher
-  GAME: DurableObjectNamespace
   DB: D1Database
 }
-
-// partysocket connects to /parties/<party>/<room> — default party is 'main'
-const WS_ROUTE = /^\/parties\/[^/]+\/([^/]+)\/?$/
 
 let schemaReady = false
 async function ensureSchema(db: D1Database): Promise<void> {
@@ -153,15 +145,6 @@ export default {
         status: 405,
         headers: { Allow: 'GET, POST' },
       })
-    }
-
-    const m = url.pathname.match(WS_ROUTE)
-    if (m) {
-      if (req.headers.get('Upgrade') !== 'websocket') {
-        return new Response('Expected WebSocket', { status: 426 })
-      }
-      const id = env.GAME.idFromName(m[1])
-      return env.GAME.get(id).fetch(req)
     }
 
     // Wrapper SPA routes — rewrite to root so the assets binding serves the

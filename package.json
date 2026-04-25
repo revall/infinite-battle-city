@@ -6,7 +6,7 @@
     "build:cf": "pnpm -r build && node scripts/assemble-dist.mjs",
     "test": "pnpm -r test",
     "dev": "pnpm --filter @battle-city/client dev",
-    "server": "partykit dev",
+    "server": "pnpm --filter @battle-city/server dev",
     "cf:dev": "pnpm build:cf && wrangler dev",
     "cf:deploy": "pnpm build:cf && wrangler deploy",
     "lint": "eslint packages/*/src --ext .ts,.tsx"
@@ -19,8 +19,7 @@
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "eslint": "^8.57.0",
-    "partykit": "^0.0.112",
-    "prettier": "^3.3.0",
+"prettier": "^3.3.0",
     "typescript": "^5.5.0",
     "wrangler": "^4.84.1"
   }
