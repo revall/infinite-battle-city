@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useRoomStore } from '../store/roomStore.ts'
 import type { RoomInfo } from '@battle-city/shared'
 import brickUrl from '../assets/brick.svg'
@@ -21,6 +21,8 @@ export default function Lobby() {
   const [copied, setCopied] = useState(false)
 
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const inviteRoomId = searchParams.get('room')
   const { setPlayerName, setRoom } = useRoomStore()
 
   const handleNameSubmit = (e: React.FormEvent) => {
@@ -30,7 +32,12 @@ export default function Lobby() {
     localStorage.setItem('battle-city:playerName', trimmed)
     setPlayerName(trimmed)
     setError('')
-    setStep('mode')
+    if (inviteRoomId) {
+      setRoom(inviteRoomId, 'private')
+      navigate('/game')
+    } else {
+      setStep('mode')
+    }
   }
 
   const handleAutoJoin = async () => {
@@ -110,7 +117,14 @@ export default function Lobby() {
             maxLength={24}
             autoFocus
           />
-          <button style={styles.button} type="submit">CONTINUE</button>
+          {inviteRoomId && (
+            <p style={styles.inviteHint}>
+              Joining room: {inviteRoomId.toUpperCase()}
+            </p>
+          )}
+          <button style={styles.button} type="submit">
+            {inviteRoomId ? 'JOIN ROOM' : 'CONTINUE'}
+          </button>
           <p style={{ ...styles.error, visibility: error ? 'visible' : 'hidden' }}>
             ! {error || '.'}
           </p>
@@ -256,6 +270,7 @@ const styles = {
     color: '#ff3b3b', margin: 0, fontSize: 13,
     letterSpacing: '0.06em', textAlign: 'center' as const,
   },
+  inviteHint: { color: '#f5c518', fontSize: 13, letterSpacing: '0.06em', textAlign: 'center' as const, margin: 0 },
   inviteLabel: { color: '#aaa', fontSize: 13, letterSpacing: '0.05em', margin: 0 },
   inviteBox: {
     background: '#111', border: '1px solid #444', padding: '10px 12px',
