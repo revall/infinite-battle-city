@@ -74,7 +74,7 @@ export class RoomInstance {
   onConnect(conn: Connection): void {
     this.connections.set(conn.id, conn)
     this.lastActiveAt.set(conn.id, Date.now())
-    conn.send(JSON.stringify({ type: 'welcome', id: conn.id }))
+    conn.send(JSON.stringify({ type: 'welcome', id: conn.id, roomId: this.id }))
     conn.send(JSON.stringify({ type: 'state', state: this.state }))
     this.startLoop()
   }

@@ -9,7 +9,8 @@ import Scoreboard from './Scoreboard.tsx'
 export default function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const playerName = useRoomStore((s) => s.playerName)
-  const { gameState, localPlayerId, rematch, isHost, roomUrl } = useGameSocket(playerName)
+  const roomId = useRoomStore((s) => s.roomId)
+  const { gameState, localPlayerId, rematch, isHost, roomUrl } = useGameSocket(playerName, roomId)
   const [urlCopied, setUrlCopied] = useState(false)
 
   const gameStateRef = useRef(gameState)

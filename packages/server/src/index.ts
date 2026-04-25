@@ -30,6 +30,13 @@ function httpHandler(req: IncomingMessage, res: ServerResponse) {
     return
   }
 
+  if (url.pathname === '/rooms/auto' && req.method === 'GET') {
+    const room = manager.getOrCreatePublic()
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ roomId: room.id }))
+    return
+  }
+
   if (url.pathname === '/rooms' && req.method === 'POST') {
     const room = manager.createPrivate()
     res.writeHead(201, { 'Content-Type': 'application/json' })

@@ -1,27 +1,30 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { GameState, Direction } from '@battle-city/shared'
 import { createInputHandler } from '../game/inputHandler.ts'
+import { useRoomStore } from '../store/roomStore.ts'
 
 const WS_URL = (import.meta.env.VITE_WS_URL as string | undefined) ?? `ws://${window.location.host}`
 const INPUT_HZ = 20
 const RECONNECT_DELAY_MS = 1000
 const MAX_RECONNECT_ATTEMPTS = 5
 
-export function useGameSocket(playerName: string, roomId = 'main') {
+export function useGameSocket(playerName: string, roomId: string | null) {
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [localPlayerId, setLocalPlayerId] = useState('')
   const socketRef = useRef<WebSocket | null>(null)
   const inputRef = useRef(createInputHandler())
   const nameRef = useRef(playerName)
-  const roomIdRef = useRef(roomId)
   useEffect(() => { nameRef.current = playerName }, [playerName])
-  useEffect(() => { roomIdRef.current = roomId }, [roomId])
+
+  const setRoom = useRoomStore((s) => s.setRoom)
 
   const rematch = useCallback(() => {
     socketRef.current?.send(JSON.stringify({ type: 'rematch' }))
   }, [])
 
   useEffect(() => {
+    if (!roomId) return // wait until a room is chosen
+
     let attempts = 0
     let inputLoop: ReturnType<typeof setInterval> | null = null
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null
@@ -40,7 +43,7 @@ export function useGameSocket(playerName: string, roomId = 'main') {
 
     function connect() {
       if (destroyed) return
-      const url = `${WS_URL}?room=${encodeURIComponent(roomIdRef.current)}`
+      const url = `${WS_URL}?room=${encodeURIComponent(roomId!)}`
       const ws = new WebSocket(url)
       socketRef.current = ws
 
@@ -49,8 +52,11 @@ export function useGameSocket(playerName: string, roomId = 'main') {
 
         if (msg.type === 'welcome') {
           attempts = 0
-          const id = msg.id as string
-          setLocalPlayerId(id)
+          setLocalPlayerId(msg.id as string)
+          // If server assigned us a room (e.g. auto-join fallback), persist it
+          if (msg.roomId && typeof msg.roomId === 'string') {
+            setRoom(msg.roomId, 'public')
+          }
           ws.send(JSON.stringify({ type: 'join', name: nameRef.current }))
         }
 
@@ -86,13 +92,11 @@ export function useGameSocket(playerName: string, roomId = 'main') {
       window.removeEventListener('message', onPostMessage)
       socketRef.current?.close()
     }
-  }, []) // roomIdRef + nameRef used inside, no dep needed
+  }, [roomId, setRoom]) // reconnect when roomId changes
 
-  return {
-    gameState,
-    localPlayerId,
-    rematch,
-    isHost: true,
-    roomUrl: window.location.href,
-  }
+  const roomUrl = roomId
+    ? `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomId)}`
+    : window.location.href
+
+  return { gameState, localPlayerId, rematch, isHost: true, roomUrl }
 }

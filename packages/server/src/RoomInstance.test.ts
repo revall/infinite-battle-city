@@ -23,7 +23,7 @@ describe('RoomInstance', () => {
     room.onConnect(conn)
     expect(conn.send).toHaveBeenCalledTimes(2)
     const welcome = JSON.parse(conn.send.mock.calls[0][0] as string)
-    expect(welcome).toEqual({ type: 'welcome', id: 'c1' })
+    expect(welcome).toMatchObject({ type: 'welcome', id: 'c1', roomId: 'test-room' })
     const stateMsg = JSON.parse(conn.send.mock.calls[1][0] as string)
     expect(stateMsg.type).toBe('state')
     expect(stateMsg.state).toBeDefined()
