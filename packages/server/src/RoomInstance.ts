@@ -5,7 +5,7 @@ import {
   ROUND_DURATION_TICKS,
   TILE_SIZE,
 } from '@battle-city/shared'
-import type { GameState, InputEvent, Direction } from '@battle-city/shared'
+import type { GameState, InputEvent, Direction, RoomInfo } from '@battle-city/shared'
 
 const SERVER_HZ = 20
 const SUBTICKS = 3
@@ -47,6 +47,7 @@ export class RoomInstance {
   lastActiveAt = new Map<string, number>()
   interval: ReturnType<typeof setInterval> | null = null
   resetTimeout: ReturnType<typeof setTimeout> | null = null
+  onDissolve: (() => void) | null = null
 
   constructor(id: string, isPrivate = false) {
     this.id = id
@@ -59,6 +60,15 @@ export class RoomInstance {
 
   get isEmpty(): boolean {
     return this.connections.size === 0
+  }
+
+  toInfo(): RoomInfo {
+    return {
+      id: this.id,
+      playerCount: this.playerCount,
+      phase: this.state.roundPhase,
+      isPrivate: this.isPrivate,
+    }
   }
 
   onConnect(conn: Connection): void {
@@ -113,6 +123,7 @@ export class RoomInstance {
     if (this.isEmpty) {
       this.stopLoop()
       this.state = freshState()
+      this.onDissolve?.()
     }
   }
 

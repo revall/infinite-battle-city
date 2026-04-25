@@ -33,6 +33,13 @@ export interface Player {
 
 export type RoundPhase = 'waiting' | 'playing' | 'ended'
 
+export interface RoomInfo {
+  id: string
+  playerCount: number
+  phase: RoundPhase
+  isPrivate: boolean
+}
+
 export interface GameState {
   tick: number
   roundPhase: RoundPhase
