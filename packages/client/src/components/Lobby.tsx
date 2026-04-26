@@ -41,59 +41,47 @@ export default function Lobby() {
     }
   }
 
-  const handleAutoJoin = async () => {
+  const apiCall = async <T,>(fn: () => Promise<T>): Promise<T | null> => {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`${API_URL}/rooms/auto`)
-      if (!res.ok) throw new Error('Server error')
-      const { roomId } = await res.json() as { roomId: string }
-      setRoom(roomId, 'public')
-      navigate('/game')
+      return await fn()
     } catch {
       setError('Could not reach server')
+      return null
     } finally {
       setLoading(false)
     }
   }
 
-  const handleBrowse = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch(`${API_URL}/rooms`)
-      if (!res.ok) throw new Error('Server error')
-      const { rooms: list } = await res.json() as { rooms: RoomInfo[] }
-      setRooms(list)
-      setStep('browse')
-    } catch {
-      setError('Could not reach server')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const handleAutoJoin = () => apiCall(async () => {
+    const res = await fetch(`${API_URL}/rooms/auto`)
+    if (!res.ok) throw new Error()
+    const { roomId } = await res.json() as { roomId: string }
+    setRoom(roomId, 'public')
+    navigate('/game')
+  })
+
+  const handleBrowse = () => apiCall(async () => {
+    const res = await fetch(`${API_URL}/rooms`)
+    if (!res.ok) throw new Error()
+    const { rooms: list } = await res.json() as { rooms: RoomInfo[] }
+    setRooms(list)
+    setStep('browse')
+  })
 
   const handlePickRoom = (roomId: string) => {
     setRoom(roomId, 'public')
     navigate('/game')
   }
 
-  const handleCreatePrivate = async () => {
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch(`${API_URL}/rooms`, { method: 'POST' })
-      if (!res.ok) throw new Error('Server error')
-      const { roomId } = await res.json() as { roomId: string }
-      setRoom(roomId, 'private')
-      const url = `${window.location.origin}${import.meta.env.BASE_URL}?room=${encodeURIComponent(roomId)}`
-      setInviteUrl(url)
-    } catch {
-      setError('Could not reach server')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const handleCreatePrivate = () => apiCall(async () => {
+    const res = await fetch(`${API_URL}/rooms`, { method: 'POST' })
+    if (!res.ok) throw new Error()
+    const { roomId } = await res.json() as { roomId: string }
+    setRoom(roomId, 'private')
+    setInviteUrl(`${window.location.origin}${import.meta.env.BASE_URL}?room=${encodeURIComponent(roomId)}`)
+  })
 
   const handleCopyInvite = () => {
     if (!inviteUrl) return

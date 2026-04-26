@@ -72,13 +72,14 @@ export default function GameCanvas() {
       for (const id of currentBullets) {
         if (!prev.bullets.has(id) && piws < 4) { playPiw(); piws++ }
       }
-      // boom — tanks that went alive → dead
+      // boom — tanks that transitioned alive → dead
       let booms = 0
       for (const [id, alive] of Object.entries(currentAlive)) {
-        if (prev.aliveTanks[id] === true && !alive) {
-          if (booms < 3) { playBoom(); booms++ }
-          if (id === localPlayerId) playGameOver()
-        }
+        if (booms < 3 && prev.aliveTanks[id] === true && !alive) { playBoom(); booms++ }
+      }
+      // game over — round just ended
+      if (prev.roundPhase === 'playing' && gameState.roundPhase === 'ended') {
+        playGameOver()
       }
       // bash — brick count dropped
       if (currentBrickCount < prev.brickCount) {

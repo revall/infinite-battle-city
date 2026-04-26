@@ -89,22 +89,20 @@ export function useGameSocket(playerName: string, roomId: string | null) {
 
       ws.addEventListener('close', (event) => {
         if (inputLoop) { clearInterval(inputLoop); inputLoop = null }
-        if (event.code === 4001) {
-          setDisconnectReason('idle')
+
+        const disconnect = (reason: DisconnectReason) => {
+          setDisconnectReason(reason)
           setDisconnected(true)
-          return
         }
-        if (event.code === 4004) {
-          setDisconnectReason('room-gone')
-          setDisconnected(true)
-          return
-        }
+
+        if (event.code === 4001) return disconnect('idle')
+        if (event.code === 4004) return disconnect('room-gone')
+
         if (!destroyed && attempts < MAX_RECONNECT_ATTEMPTS) {
           attempts++
           reconnectTimer = setTimeout(connect, RECONNECT_DELAY_MS)
         } else if (!destroyed) {
-          setDisconnectReason('room-gone')
-          setDisconnected(true)
+          disconnect('room-gone')
         }
       })
     }

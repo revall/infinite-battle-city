@@ -12,6 +12,8 @@ const SUBTICKS = 3
 const ROUND_END_RESET_MS = 33_000
 const IDLE_KICK_MS = 60_000
 
+const VALID_DIRS = new Set<unknown>(['up', 'down', 'left', 'right', null])
+
 export interface Connection {
   id: string
   send(data: string): void
@@ -99,9 +101,7 @@ export class RoomInstance {
     }
 
     if (msg.type === 'input') {
-      const validDirs = new Set<unknown>(['up', 'down', 'left', 'right', null])
-      if (!validDirs.has(msg.moveDir) || typeof msg.shoot !== 'boolean') return
-      // Any input message resets the idle timer, not just movement/shoot
+      if (!VALID_DIRS.has(msg.moveDir) || typeof msg.shoot !== 'boolean') return
       this.lastActiveAt.set(sender.id, Date.now())
       this.inputs.set(sender.id, {
         playerId: sender.id,
@@ -118,11 +118,7 @@ export class RoomInstance {
 
   onClose(conn: Connection): void {
     this.connections.delete(conn.id)
-    this.inputs.delete(conn.id)
-    this.lastActiveAt.delete(conn.id)
-    const { [conn.id]: _t, ...tanks } = this.state.tanks
-    const { [conn.id]: _p, ...players } = this.state.players
-    this.state = { ...this.state, tanks, players }
+    this.removePlayerState(conn.id)
     this.broadcast()
 
     if (this.isEmpty) {
@@ -149,11 +145,7 @@ export class RoomInstance {
     for (const [id, conn] of [...this.connections]) {
       const last = this.lastActiveAt.get(id) ?? now
       if (now - last > IDLE_KICK_MS) {
-        const { [id]: _t, ...tanks } = this.state.tanks
-        const { [id]: _p, ...players } = this.state.players
-        this.state = { ...this.state, tanks, players }
-        this.inputs.delete(id)
-        this.lastActiveAt.delete(id)
+        this.removePlayerState(id)
         conn.close(4001, 'idle')
       }
     }
@@ -161,12 +153,7 @@ export class RoomInstance {
     // Reap ghosts whose onClose didn't fire
     const activeIds = new Set(this.connections.keys())
     for (const id of Object.keys(this.state.players)) {
-      if (!activeIds.has(id)) {
-        const { [id]: _p, ...players } = this.state.players
-        const { [id]: _t, ...tanks } = this.state.tanks
-        this.state = { ...this.state, players, tanks }
-        this.inputs.delete(id)
-      }
+      if (!activeIds.has(id)) this.removePlayerState(id)
     }
 
     for (const id of Object.keys(this.state.players)) {
@@ -195,7 +182,6 @@ export class RoomInstance {
       spawnPoints: spawnPoints.map((sp) => ({ x: sp.x * TILE_SIZE, y: sp.y * TILE_SIZE })),
       players: this.state.players,
     }
-    // Spawn tanks immediately so the first broadcast has no empty-tanks gap
     for (const id of Object.keys(state.players)) {
       state = spawnTankForPlayer(id, state)
     }
@@ -208,5 +194,13 @@ export class RoomInstance {
     for (const conn of this.connections.values()) {
       conn.send(msg)
     }
+  }
+
+  private removePlayerState(id: string): void {
+    const { [id]: _t, ...tanks } = this.state.tanks
+    const { [id]: _p, ...players } = this.state.players
+    this.state = { ...this.state, tanks, players }
+    this.inputs.delete(id)
+    this.lastActiveAt.delete(id)
   }
 }
