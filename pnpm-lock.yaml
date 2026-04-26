@@ -8,7 +8,7 @@ importers:
 
   .:
     dependencies:
-      '@battle-city/shared':
+      '@tankr/shared':
         specifier: workspace:*
         version: link:packages/shared
     devDependencies:
@@ -36,7 +36,7 @@ importers:
 
   packages/client:
     dependencies:
-      '@battle-city/shared':
+      '@tankr/shared':
         specifier: workspace:*
         version: link:../shared
       qrcode.react:
@@ -79,7 +79,7 @@ importers:
 
   packages/server:
     dependencies:
-      '@battle-city/shared':
+      '@tankr/shared':
         specifier: workspace:*
         version: link:../shared
       ws:

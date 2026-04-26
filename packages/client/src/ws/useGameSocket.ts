@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import type { GameState, Direction } from '@battle-city/shared'
+import type { GameState, Direction } from '@tankr/shared'
 import { createInputHandler } from '../game/inputHandler.ts'
 import { useRoomStore } from '../store/roomStore.ts'
 
@@ -8,9 +8,14 @@ const INPUT_HZ = 20
 const RECONNECT_DELAY_MS = 1000
 const MAX_RECONNECT_ATTEMPTS = 5
 
+export type DisconnectReason = 'idle' | 'room-gone'
+
 export function useGameSocket(playerName: string, roomId: string | null) {
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [localPlayerId, setLocalPlayerId] = useState('')
+  const [disconnected, setDisconnected] = useState(false)
+  const [disconnectReason, setDisconnectReason] = useState<DisconnectReason>('idle')
+  const [forceReconnect, setForceReconnect] = useState(0)
   const socketRef = useRef<WebSocket | null>(null)
   const inputRef = useRef(createInputHandler())
   const nameRef = useRef(playerName)
@@ -22,8 +27,15 @@ export function useGameSocket(playerName: string, roomId: string | null) {
     socketRef.current?.send(JSON.stringify({ type: 'rematch' }))
   }, [])
 
+  const reconnect = useCallback(() => {
+    setDisconnected(false)
+    setGameState(null)
+    setForceReconnect((c) => c + 1)
+  }, [])
+
   useEffect(() => {
-    if (!roomId) return // wait until a room is chosen
+    if (!roomId) return
+    setDisconnected(false)
 
     let attempts = 0
     let inputLoop: ReturnType<typeof setInterval> | null = null
@@ -48,13 +60,15 @@ export function useGameSocket(playerName: string, roomId: string | null) {
       socketRef.current = ws
 
       ws.addEventListener('message', (e: MessageEvent<string>) => {
-        const msg = JSON.parse(e.data) as { type: string; [k: string]: unknown }
+        let msg: { type: string; [k: string]: unknown }
+        try { msg = JSON.parse(e.data) } catch { return }
 
         if (msg.type === 'welcome') {
           attempts = 0
           setLocalPlayerId(msg.id as string)
-          // If server assigned us a room (e.g. auto-join fallback), persist it
-          if (msg.roomId && typeof msg.roomId === 'string') {
+          // Only update the room if the server assigned a different one (auto-join fallback).
+          // Preserve the existing type (public/private) when rejoining a known room.
+          if (msg.roomId && typeof msg.roomId === 'string' && msg.roomId !== roomId) {
             setRoom(msg.roomId, 'public')
           }
           ws.send(JSON.stringify({ type: 'join', name: nameRef.current }))
@@ -73,11 +87,24 @@ export function useGameSocket(playerName: string, roomId: string | null) {
         }, 1000 / INPUT_HZ)
       })
 
-      ws.addEventListener('close', () => {
+      ws.addEventListener('close', (event) => {
         if (inputLoop) { clearInterval(inputLoop); inputLoop = null }
+        if (event.code === 4001) {
+          setDisconnectReason('idle')
+          setDisconnected(true)
+          return
+        }
+        if (event.code === 4004) {
+          setDisconnectReason('room-gone')
+          setDisconnected(true)
+          return
+        }
         if (!destroyed && attempts < MAX_RECONNECT_ATTEMPTS) {
           attempts++
           reconnectTimer = setTimeout(connect, RECONNECT_DELAY_MS)
+        } else if (!destroyed) {
+          setDisconnectReason('room-gone')
+          setDisconnected(true)
         }
       })
     }
@@ -92,7 +119,7 @@ export function useGameSocket(playerName: string, roomId: string | null) {
       window.removeEventListener('message', onPostMessage)
       socketRef.current?.close()
     }
-  }, [roomId, setRoom]) // reconnect when roomId changes
+  }, [roomId, setRoom, forceReconnect])
 
   const roomUrl = roomId
     ? `${window.location.origin}${import.meta.env.BASE_URL}?room=${encodeURIComponent(roomId)}`
@@ -101,5 +128,5 @@ export function useGameSocket(playerName: string, roomId: string | null) {
   const press = useCallback((code: string) => inputRef.current.press(code), [])
   const release = useCallback((code: string) => inputRef.current.release(code), [])
 
-  return { gameState, localPlayerId, rematch, isHost: true, roomUrl, press, release }
+  return { gameState, localPlayerId, rematch, reconnect, disconnected, disconnectReason, isHost: true, roomUrl, press, release }
 }

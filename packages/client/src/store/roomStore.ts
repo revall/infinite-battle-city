@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { RoomInfo } from '@battle-city/shared'
+import type { RoomInfo } from '@tankr/shared'
 
 interface RoomState {
   playerName: string

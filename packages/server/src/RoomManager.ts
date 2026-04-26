@@ -1,5 +1,5 @@
-import { MAX_PLAYERS } from '@battle-city/shared'
-import type { RoomInfo } from '@battle-city/shared'
+import { MAX_PLAYERS } from '@tankr/shared'
+import type { RoomInfo } from '@tankr/shared'
 import { RoomInstance } from './RoomInstance'
 
 export class RoomManager {

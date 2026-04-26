@@ -4,18 +4,18 @@ import {
   generateMap,
   ROUND_DURATION_TICKS,
   TILE_SIZE,
-} from '@battle-city/shared'
-import type { GameState, InputEvent, Direction, RoomInfo } from '@battle-city/shared'
+} from '@tankr/shared'
+import type { GameState, InputEvent, Direction, RoomInfo } from '@tankr/shared'
 
 const SERVER_HZ = 20
 const SUBTICKS = 3
-const ROUND_END_RESET_MS = 10_000
+const ROUND_END_RESET_MS = 33_000
 const IDLE_KICK_MS = 60_000
 
 export interface Connection {
   id: string
   send(data: string): void
-  close(): void
+  close(code?: number, reason?: string): void
 }
 
 type ClientMsg =
@@ -84,20 +84,25 @@ export class RoomInstance {
     try { msg = JSON.parse(message) } catch { return }
 
     if (msg.type === 'join') {
+      if (typeof msg.name !== 'string') return
+      const name = msg.name.slice(0, 32)
       this.lastActiveAt.set(sender.id, Date.now())
       this.state = {
         ...this.state,
         roundPhase: 'playing',
         players: {
           ...this.state.players,
-          [sender.id]: { id: sender.id, name: msg.name, joinedAt: Date.now() },
+          [sender.id]: { id: sender.id, name, joinedAt: Date.now() },
         },
       }
       this.broadcast()
     }
 
     if (msg.type === 'input') {
-      if (msg.moveDir !== null || msg.shoot) this.lastActiveAt.set(sender.id, Date.now())
+      const validDirs = new Set<unknown>(['up', 'down', 'left', 'right', null])
+      if (!validDirs.has(msg.moveDir) || typeof msg.shoot !== 'boolean') return
+      // Any input message resets the idle timer, not just movement/shoot
+      this.lastActiveAt.set(sender.id, Date.now())
       this.inputs.set(sender.id, {
         playerId: sender.id,
         tick: this.state.tick,
@@ -141,7 +146,7 @@ export class RoomInstance {
     if (this.state.roundPhase !== 'playing') return
 
     const now = Date.now()
-    for (const [id, conn] of this.connections) {
+    for (const [id, conn] of [...this.connections]) {
       const last = this.lastActiveAt.get(id) ?? now
       if (now - last > IDLE_KICK_MS) {
         const { [id]: _t, ...tanks } = this.state.tanks
@@ -149,7 +154,7 @@ export class RoomInstance {
         this.state = { ...this.state, tanks, players }
         this.inputs.delete(id)
         this.lastActiveAt.delete(id)
-        conn.close()
+        conn.close(4001, 'idle')
       }
     }
 
@@ -183,13 +188,18 @@ export class RoomInstance {
   doRematch(): void {
     if (this.resetTimeout) { clearTimeout(this.resetTimeout); this.resetTimeout = null }
     const { tiles, spawnPoints } = generateMap(Date.now())
-    this.state = {
+    let state: GameState = {
       ...freshState(),
       roundPhase: 'playing',
       map: tiles,
       spawnPoints: spawnPoints.map((sp) => ({ x: sp.x * TILE_SIZE, y: sp.y * TILE_SIZE })),
       players: this.state.players,
     }
+    // Spawn tanks immediately so the first broadcast has no empty-tanks gap
+    for (const id of Object.keys(state.players)) {
+      state = spawnTankForPlayer(id, state)
+    }
+    this.state = state
     this.broadcast()
   }
 

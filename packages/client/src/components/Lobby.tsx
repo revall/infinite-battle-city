@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { useRoomStore } from '../store/roomStore.ts'
-import type { RoomInfo } from '@battle-city/shared'
+import type { RoomInfo } from '@tankr/shared'
 import brickUrl from '../assets/brick.svg'
 
 const WS_URL = (import.meta.env.VITE_WS_URL as string | undefined) ?? `ws://${window.location.host}`
@@ -12,7 +12,7 @@ type Step = 'name' | 'mode' | 'browse'
 
 export default function Lobby() {
   const [name, setName] = useState(
-    () => localStorage.getItem('battle-city:playerName') ?? '',
+    () => localStorage.getItem('tankr:playerName') ?? '',
   )
   const [step, setStep] = useState<Step>('name')
   const [rooms, setRooms] = useState<RoomInfo[]>([])
@@ -30,7 +30,7 @@ export default function Lobby() {
     e.preventDefault()
     const trimmed = name.trim()
     if (!trimmed) { setError('Name required'); return }
-    localStorage.setItem('battle-city:playerName', trimmed)
+    localStorage.setItem('tankr:playerName', trimmed)
     setPlayerName(trimmed)
     setError('')
     if (inviteRoomId) {
@@ -107,7 +107,7 @@ export default function Lobby() {
     return (
       <div style={styles.root}>
         <h1 style={{ ...styles.title, backgroundImage: `url("${brickUrl}")` }}>
-          BATTLE CITY
+          TANKR
         </h1>
         <form onSubmit={handleNameSubmit} style={styles.form}>
           <input
@@ -164,7 +164,7 @@ export default function Lobby() {
     return (
       <div style={styles.root}>
         <h1 style={{ ...styles.title, backgroundImage: `url("${brickUrl}")` }}>
-          BATTLE CITY
+          TANKR
         </h1>
         <div style={styles.form}>
           <button style={styles.button} onClick={handleAutoJoin} disabled={loading}>

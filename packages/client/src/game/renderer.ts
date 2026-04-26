@@ -1,5 +1,5 @@
-import { TILE_SIZE, TANK_SIZE, CANNON_WIDTH, CANNON_OUT } from '@battle-city/shared'
-import type { GameState, TileType, Tank, Bullet } from '@battle-city/shared'
+import { TILE_SIZE, TANK_SIZE, CANNON_WIDTH, CANNON_OUT } from '@tankr/shared'
+import type { GameState, TileType, Tank, Bullet } from '@tankr/shared'
 
 const OPEN_BG = '#1a1a1a'
 

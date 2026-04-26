@@ -70,7 +70,7 @@ wss.on('connection', (ws: WebSocket, req) => {
     send: (data: string) => {
       if (ws.readyState === WebSocket.OPEN) ws.send(data)
     },
-    close: () => ws.close(),
+    close: (code?: number, reason?: string) => ws.close(code, reason),
   }
 
   room.onConnect(conn)

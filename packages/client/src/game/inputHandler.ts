@@ -1,4 +1,4 @@
-import type { Direction } from '@battle-city/shared'
+import type { Direction } from '@tankr/shared'
 
 export interface InputState {
   moveDir: Direction | null

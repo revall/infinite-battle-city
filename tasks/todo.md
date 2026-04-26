@@ -23,6 +23,6 @@
 - [x] T8: `/?room=CODE` invite link support — read URL param on load, skip room-select step
 
 ## Phase 5 — Cleanup
-- [ ] T9: Remove `party/`, `partysocket` dep; `pnpm build` clean
+- [x] T9: Remove `party/`, `partysocket` dep; `pnpm build` clean
 
 ### CHECKPOINT 4 (done): smoke test passes, no PartyKit, build clean

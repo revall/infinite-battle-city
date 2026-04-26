@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
 import { renderFrame } from '../game/renderer.ts'
 import { playPiw, playBoom, playBash, playStart, playGameOver } from '../game/audio.ts'
@@ -10,9 +11,18 @@ import MobileControls, { useTouchDevice } from './MobileControls.tsx'
 
 export default function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const navigate = useNavigate()
   const playerName = useRoomStore((s) => s.playerName)
   const roomId = useRoomStore((s) => s.roomId)
-  const { gameState, localPlayerId, rematch, isHost, roomUrl, press, release } = useGameSocket(playerName, roomId)
+  const clearRoom = useRoomStore((s) => s.clearRoom)
+  const { gameState, localPlayerId, rematch, reconnect, disconnected, disconnectReason, isHost, roomUrl, press, release } = useGameSocket(playerName, roomId)
+  const mountedRef = useRef(true)
+  useEffect(() => () => { mountedRef.current = false }, [])
+
+  const goToLobby = useCallback(() => {
+    clearRoom()
+    navigate('/')
+  }, [clearRoom, navigate])
   const [showInvite, setShowInvite] = useState(false)
   const isTouch = useTouchDevice()
   const [urlCopied, setUrlCopied] = useState(false)
@@ -118,7 +128,7 @@ export default function GameCanvas() {
   const copyUrl = useCallback(() => {
     navigator.clipboard.writeText(roomUrl).then(() => {
       setUrlCopied(true)
-      setTimeout(() => setUrlCopied(false), 2000)
+      setTimeout(() => { if (mountedRef.current) setUrlCopied(false) }, 2000)
     })
   }, [roomUrl])
 
@@ -145,13 +155,32 @@ export default function GameCanvas() {
       )}
 
       {gameState && gameState.roundPhase === 'ended' && (
-        <Scoreboard state={gameState} localPlayerId={localPlayerId} isHost={isHost} onRematch={rematch} />
+        <Scoreboard state={gameState} localPlayerId={localPlayerId} onRematch={rematch} />
       )}
 
       {gameState?.roundPhase !== 'ended' && !isTouch && (
         <button style={styles.shareBtn} onClick={() => setShowInvite((v) => !v)}>
           🔗 Invite
         </button>
+      )}
+
+      {disconnected && (
+        <div style={styles.dcOverlay}>
+          <div style={styles.dcCard}>
+            <h2 style={styles.dcTitle}>DISCONNECTED</h2>
+            <p style={styles.dcSub}>
+              {disconnectReason === 'room-gone'
+                ? 'Room no longer exists.'
+                : 'You were removed due to inactivity.'}
+            </p>
+            <button style={styles.dcBtn} onClick={reconnect}>REJOIN</button>
+            <button style={styles.dcLobbyBtn} onClick={goToLobby}>← BACK TO LOBBY</button>
+          </div>
+          {/* AD SLOT — replace children with your ad component */}
+          <div style={styles.dcAd}>
+            <span style={styles.dcAdLabel}>ADVERTISEMENT</span>
+          </div>
+        </div>
       )}
 
       {showInvite && (
@@ -212,6 +241,38 @@ const styles = {
     color: '#000', cursor: 'pointer',
     fontFamily: '"Geist Pixel Square", ui-monospace, monospace', fontWeight: 700,
   },
+  dcOverlay: {
+    position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.92)',
+    display: 'flex', flexDirection: 'column' as const,
+    alignItems: 'center', justifyContent: 'center', gap: 24, zIndex: 20,
+    fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+    padding: 24,
+  },
+  dcCard: {
+    background: '#111', border: '2px solid #333',
+    padding: '32px 40px', display: 'flex', flexDirection: 'column' as const,
+    alignItems: 'center', gap: 16, minWidth: 280, textAlign: 'center' as const,
+  },
+  dcTitle: { color: '#ff3b3b', fontSize: 28, letterSpacing: 4, margin: 0 },
+  dcSub: { color: '#888', fontSize: 13, letterSpacing: '0.05em', margin: 0 },
+  dcBtn: {
+    marginTop: 8, padding: '12px 32px', fontSize: 16,
+    background: '#f5c518', border: 'none', color: '#000',
+    cursor: 'pointer', fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+    fontWeight: 'bold', letterSpacing: 2, width: '100%',
+  },
+  dcLobbyBtn: {
+    padding: '8px 0', fontSize: 12, background: 'none',
+    border: 'none', color: '#666', cursor: 'pointer',
+    fontFamily: '"Geist Pixel Square", ui-monospace, monospace',
+    letterSpacing: '0.1em',
+  },
+  dcAd: {
+    background: '#1a1a1a', border: '1px dashed #555',
+    width: 320, height: 100,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  dcAdLabel: { color: '#555', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase' as const },
   inviteClose: {
     position: 'absolute' as const, top: 6, right: 8,
     background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 14,

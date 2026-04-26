@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 
 export function useTouchDevice(): boolean {
-  const [isTouch, setIsTouch] = useState(false)
+  const [isTouch, setIsTouch] = useState(
+    () => window.matchMedia('(hover: none) and (pointer: coarse)').matches,
+  )
   useEffect(() => {
     const mq = window.matchMedia('(hover: none) and (pointer: coarse)')
     setIsTouch(mq.matches)
@@ -103,9 +105,10 @@ export default function MobileControls({ press, release, center }: Props) {
       alignItems: 'center',
       justifyContent: 'space-around',
       padding: '14px 24px 18px',
-      // safe-area inset for devices with home bar
       paddingBottom: 'max(18px, env(safe-area-inset-bottom))',
       flexShrink: 0,
+      userSelect: 'none',
+      WebkitUserSelect: 'none',
     }}>
 
       {/* D-pad — cross shape built from a 3×3 CSS grid */}

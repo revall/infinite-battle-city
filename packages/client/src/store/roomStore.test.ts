@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { useRoomStore } from './roomStore'
-import type { RoomInfo } from '@battle-city/shared'
+import type { RoomInfo } from '@tankr/shared'
 
 const reset = () =>
   useRoomStore.setState({ playerName: '', roomId: null, roomType: null, rooms: [] })

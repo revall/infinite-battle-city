@@ -1,5 +1,5 @@
 {
-  "name": "@battle-city/server",
+  "name": "@tankr/server",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -9,7 +9,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@battle-city/shared": "workspace:*",
+    "@tankr/shared": "workspace:*",
     "ws": "^8.18.0"
   },
   "devDependencies": {

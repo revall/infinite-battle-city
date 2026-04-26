@@ -1,5 +1,5 @@
-import type { GameState } from '@battle-city/shared'
-import { ROUND_DURATION_TICKS } from '@battle-city/shared'
+import type { GameState } from '@tankr/shared'
+import { ROUND_DURATION_TICKS } from '@tankr/shared'
 
 interface Props {
   state: GameState
