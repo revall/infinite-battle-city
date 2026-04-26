@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { QRCodeSVG } from 'qrcode.react'
 import { renderFrame } from '../game/renderer.ts'
 import { playPiw, playBoom, playBash, playStart, playGameOver } from '../game/audio.ts'
 import { useGameSocket } from '../ws/useGameSocket.ts'
@@ -11,6 +12,7 @@ export default function GameCanvas() {
   const playerName = useRoomStore((s) => s.playerName)
   const roomId = useRoomStore((s) => s.roomId)
   const { gameState, localPlayerId, rematch, isHost, roomUrl } = useGameSocket(playerName, roomId)
+  const [showInvite, setShowInvite] = useState(false)
   const [urlCopied, setUrlCopied] = useState(false)
 
   const gameStateRef = useRef(gameState)
@@ -106,12 +108,12 @@ export default function GameCanvas() {
     return () => cancelAnimationFrame(rafId)
   }, [])
 
-  const copyUrl = () => {
+  const copyUrl = useCallback(() => {
     navigator.clipboard.writeText(roomUrl).then(() => {
       setUrlCopied(true)
       setTimeout(() => setUrlCopied(false), 2000)
     })
-  }
+  }, [roomUrl])
 
   return (
     <>
@@ -132,9 +134,20 @@ export default function GameCanvas() {
       )}
 
       {gameState?.roundPhase !== 'ended' && (
-        <button style={styles.shareBtn} onClick={copyUrl} title="Copy invite link">
-          {urlCopied ? '✓ Copied!' : '🔗 Invite'}
+        <button style={styles.shareBtn} onClick={() => setShowInvite((v) => !v)}>
+          🔗 Invite
         </button>
+      )}
+
+      {showInvite && (
+        <div style={styles.inviteOverlay}>
+          <QRCodeSVG value={roomUrl} size={140} bgColor="#111" fgColor="#ffffff" />
+          <p style={styles.inviteUrl}>{roomUrl}</p>
+          <button style={styles.inviteCopy} onClick={copyUrl}>
+            {urlCopied ? '✓ Copied!' : 'Copy link'}
+          </button>
+          <button style={styles.inviteClose} onClick={() => setShowInvite(false)}>✕</button>
+        </div>
       )}
 
     </>
@@ -151,5 +164,25 @@ const styles = {
     position: 'fixed' as const, bottom: 12, right: 12, padding: '6px 14px',
     background: 'rgba(0,0,0,0.7)', border: '1px solid #555',
     color: '#ccc', fontFamily: '"Geist Pixel Square", ui-monospace, monospace', fontSize: 12, cursor: 'pointer',
+  },
+  inviteOverlay: {
+    position: 'fixed' as const, bottom: 44, right: 12,
+    background: '#111', border: '1px solid #444', padding: 16,
+    display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 10,
+    boxShadow: '0 4px 24px rgba(0,0,0,0.8)',
+  },
+  inviteUrl: {
+    color: '#888', fontSize: 10, margin: 0, maxWidth: 160,
+    wordBreak: 'break-all' as const, textAlign: 'center' as const,
+    fontFamily: 'ui-monospace, monospace',
+  },
+  inviteCopy: {
+    padding: '5px 14px', fontSize: 11, background: '#fff', border: 'none',
+    color: '#000', cursor: 'pointer',
+    fontFamily: '"Geist Pixel Square", ui-monospace, monospace', fontWeight: 700,
+  },
+  inviteClose: {
+    position: 'absolute' as const, top: 6, right: 8,
+    background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: 14,
   },
 }

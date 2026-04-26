@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { QRCodeSVG } from 'qrcode.react'
 import { useRoomStore } from '../store/roomStore.ts'
 import type { RoomInfo } from '@battle-city/shared'
 import brickUrl from '../assets/brick.svg'
@@ -143,6 +144,9 @@ export default function Lobby() {
           <div style={styles.form}>
             <p style={styles.inviteLabel}>Share this link with friends:</p>
             <div style={styles.inviteBox}>{inviteUrl}</div>
+            <div style={styles.qrWrap}>
+              <QRCodeSVG value={inviteUrl} size={160} bgColor="#000" fgColor="#ffffff" />
+            </div>
             <button style={styles.button} onClick={handleCopyInvite}>
               {copied ? '✓ COPIED!' : 'COPY LINK'}
             </button>
@@ -272,6 +276,7 @@ const styles = {
   },
   inviteHint: { color: '#f5c518', fontSize: 13, letterSpacing: '0.06em', textAlign: 'center' as const, margin: 0 },
   inviteLabel: { color: '#aaa', fontSize: 13, letterSpacing: '0.05em', margin: 0 },
+  qrWrap: { display: 'flex', justifyContent: 'center', padding: '12px 0' },
   inviteBox: {
     background: '#111', border: '1px solid #444', padding: '10px 12px',
     color: '#f5c518', fontSize: 12, letterSpacing: '0.05em',
