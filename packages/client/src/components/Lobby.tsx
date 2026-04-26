@@ -6,7 +6,7 @@ import type { RoomInfo } from '@tankr/shared'
 import brickUrl from '../assets/brick.svg'
 
 const WS_URL = (import.meta.env.VITE_WS_URL as string | undefined) ?? `ws://${window.location.host}`
-const API_URL = WS_URL.replace(/^ws/, 'http')
+const API_URL = WS_URL.replace(/^ws/, 'http').replace(/\/[^/]+$/, '')
 
 type Step = 'name' | 'mode' | 'browse'
 
