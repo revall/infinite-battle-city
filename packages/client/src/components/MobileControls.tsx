@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-function useTouchDevice(): boolean {
+export function useTouchDevice(): boolean {
   const [isTouch, setIsTouch] = useState(false)
   useEffect(() => {
     const mq = window.matchMedia('(hover: none) and (pointer: coarse)')
@@ -47,6 +47,7 @@ function Btn({ code, press, release, style, children }: BtnProps) {
 interface Props {
   press: (code: string) => void
   release: (code: string) => void
+  center?: React.ReactNode
 }
 
 // D-pad arm button — part of the cross shape
@@ -70,7 +71,7 @@ const ARM_W = 44   // width of each arm
 const ARM_H = 44   // height of each arm
 const CROSS_CENTER = ARM_W // center square size = arm width
 
-export default function MobileControls({ press, release }: Props) {
+export default function MobileControls({ press, release, center }: Props) {
   const isTouch = useTouchDevice()
   if (!isTouch) return null
 
@@ -148,7 +149,17 @@ export default function MobileControls({ press, release }: Props) {
         <span style={{ background: '#1e1e1e' }} />
       </div>
 
-      {/* Shoulder / grip shape hint */}
+      {/* Center slot — START/SELECT area */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 8,
+      }}>
+        {center}
+      </div>
+
+      {/* FIRE button */}
       <div style={{
         display: 'flex',
         flexDirection: 'column',

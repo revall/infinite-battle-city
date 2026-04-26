@@ -6,7 +6,7 @@ import { useGameSocket } from '../ws/useGameSocket.ts'
 import { useRoomStore } from '../store/roomStore.ts'
 import HUD from './HUD.tsx'
 import Scoreboard from './Scoreboard.tsx'
-import MobileControls from './MobileControls.tsx'
+import MobileControls, { useTouchDevice } from './MobileControls.tsx'
 
 export default function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -14,6 +14,7 @@ export default function GameCanvas() {
   const roomId = useRoomStore((s) => s.roomId)
   const { gameState, localPlayerId, rematch, isHost, roomUrl, press, release } = useGameSocket(playerName, roomId)
   const [showInvite, setShowInvite] = useState(false)
+  const isTouch = useTouchDevice()
   const [urlCopied, setUrlCopied] = useState(false)
 
   const gameStateRef = useRef(gameState)
@@ -124,7 +125,14 @@ export default function GameCanvas() {
   return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column' }}>
       <canvas ref={canvasRef} style={{ display: 'block', flex: 1, minHeight: 0, width: '100%' }} />
-      {gameState?.roundPhase === 'playing' && <MobileControls press={press} release={release} />}
+      {gameState?.roundPhase === 'playing' && (
+        <MobileControls press={press} release={release} center={
+          <button style={styles.ctrlInviteBtn} onClick={() => setShowInvite((v) => !v)}>
+            🔗<br />
+            <span style={{ fontSize: 9, letterSpacing: '0.1em' }}>INVITE</span>
+          </button>
+        } />
+      )}
 
       {!gameState && (
         <div style={styles.loading}>
@@ -140,7 +148,7 @@ export default function GameCanvas() {
         <Scoreboard state={gameState} localPlayerId={localPlayerId} isHost={isHost} onRematch={rematch} />
       )}
 
-      {gameState?.roundPhase !== 'ended' && (
+      {gameState?.roundPhase !== 'ended' && !isTouch && (
         <button style={styles.shareBtn} onClick={() => setShowInvite((v) => !v)}>
           🔗 Invite
         </button>
@@ -171,6 +179,22 @@ const styles = {
     position: 'fixed' as const, bottom: 12, right: 12, padding: '6px 14px',
     background: 'rgba(0,0,0,0.7)', border: '1px solid #555',
     color: '#ccc', fontFamily: '"Geist Pixel Square", ui-monospace, monospace', fontSize: 12, cursor: 'pointer',
+  },
+  ctrlInviteBtn: {
+    background: '#252525',
+    border: '2px solid #3a3a3a',
+    borderRadius: 6,
+    color: '#aaa',
+    fontSize: 20,
+    padding: '6px 10px',
+    cursor: 'pointer',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
+    boxShadow: 'inset 0 -2px 0 rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+    fontFamily: "'Geist Pixel Square', ui-monospace, monospace",
+    touchAction: 'none' as const,
+    lineHeight: 1.2,
   },
   inviteOverlay: {
     position: 'fixed' as const, bottom: 44, right: 12,
