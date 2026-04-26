@@ -15,7 +15,9 @@
       "Bash(pnpm --filter @tankr/client exec tsc -p tsconfig.json --noEmit)",
       "Bash(pnpm --filter @tankr/server exec tsc --noEmit)",
       "Bash(pnpm --filter @tankr/server test)",
-      "Bash(pnpm --filter @tankr/shared test)"
+      "Bash(pnpm --filter @tankr/shared test)",
+      "Bash(pnpm -r build)",
+      "Bash(pnpm audit *)"
     ]
   }
 }
