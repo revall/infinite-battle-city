@@ -85,14 +85,19 @@ export default function GameCanvas() {
     seenFirstStateRef.current = true
   }, [gameState, localPlayerId])
 
-  // Canvas resize
+  // Canvas resize — match the canvas element's CSS-rendered size, not the full window,
+  // so the flex layout (which reserves space for mobile controls) is respected.
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight }
-    resize()
-    window.addEventListener('resize', resize)
-    return () => window.removeEventListener('resize', resize)
+    const sync = () => {
+      canvas.width = canvas.offsetWidth
+      canvas.height = canvas.offsetHeight
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(canvas)
+    return () => ro.disconnect()
   }, [])
 
   // Single permanent RAF loop
@@ -117,8 +122,9 @@ export default function GameCanvas() {
   }, [roomUrl])
 
   return (
-    <>
-      <canvas ref={canvasRef} style={{ display: 'block' }} />
+    <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column' }}>
+      <canvas ref={canvasRef} style={{ display: 'block', flex: 1, minHeight: 0, width: '100%' }} />
+      {gameState?.roundPhase === 'playing' && <MobileControls press={press} release={release} />}
 
       {!gameState && (
         <div style={styles.loading}>
@@ -140,10 +146,6 @@ export default function GameCanvas() {
         </button>
       )}
 
-      {gameState?.roundPhase === 'playing' && (
-        <MobileControls press={press} release={release} />
-      )}
-
       {showInvite && (
         <div style={styles.inviteOverlay}>
           <QRCodeSVG value={roomUrl} size={140} bgColor="#111" fgColor="#ffffff" />
@@ -155,7 +157,7 @@ export default function GameCanvas() {
         </div>
       )}
 
-    </>
+    </div>
   )
 }
 
