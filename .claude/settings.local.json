@@ -9,7 +9,11 @@
       "Bash(pnpm test *)",
       "Bash(pnpm -r test)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(find packages/*/src -name \"*.ts\" -o -name \"*.tsx\")",
+      "Bash(xargs sed *)",
+      "Bash(pnpm --filter @tankr/client exec tsc -p tsconfig.json --noEmit)",
+      "Bash(pnpm --filter @tankr/server exec tsc --noEmit)"
     ]
   }
 }

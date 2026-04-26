@@ -1,3 +1,0 @@
-- BATTLE CITY ONLINE — now with INTERNET MULTIPLAYER technology!
-- Fake 56k modem sound
-- This site works best in Internet Explorer 5.5
