@@ -11,7 +11,7 @@ function RequireRoom({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <BrowserRouter basename="/play">
+    <BrowserRouter basename="/">
       <Routes>
         <Route path="/" element={<Lobby />} />
         <Route
