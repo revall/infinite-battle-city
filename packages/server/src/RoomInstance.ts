@@ -102,7 +102,7 @@ export class RoomInstance {
 
     if (msg.type === 'input') {
       if (!VALID_DIRS.has(msg.moveDir) || typeof msg.shoot !== 'boolean') return
-      this.lastActiveAt.set(sender.id, Date.now())
+      if (msg.moveDir !== null || msg.shoot) this.lastActiveAt.set(sender.id, Date.now())
       this.inputs.set(sender.id, {
         playerId: sender.id,
         tick: this.state.tick,
