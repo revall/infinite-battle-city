@@ -6,12 +6,13 @@ import { useGameSocket } from '../ws/useGameSocket.ts'
 import { useRoomStore } from '../store/roomStore.ts'
 import HUD from './HUD.tsx'
 import Scoreboard from './Scoreboard.tsx'
+import MobileControls from './MobileControls.tsx'
 
 export default function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const playerName = useRoomStore((s) => s.playerName)
   const roomId = useRoomStore((s) => s.roomId)
-  const { gameState, localPlayerId, rematch, isHost, roomUrl } = useGameSocket(playerName, roomId)
+  const { gameState, localPlayerId, rematch, isHost, roomUrl, press, release } = useGameSocket(playerName, roomId)
   const [showInvite, setShowInvite] = useState(false)
   const [urlCopied, setUrlCopied] = useState(false)
 
@@ -137,6 +138,10 @@ export default function GameCanvas() {
         <button style={styles.shareBtn} onClick={() => setShowInvite((v) => !v)}>
           🔗 Invite
         </button>
+      )}
+
+      {gameState?.roundPhase === 'playing' && (
+        <MobileControls press={press} release={release} />
       )}
 
       {showInvite && (

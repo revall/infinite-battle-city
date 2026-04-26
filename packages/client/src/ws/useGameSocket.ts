@@ -98,5 +98,8 @@ export function useGameSocket(playerName: string, roomId: string | null) {
     ? `${window.location.origin}${import.meta.env.BASE_URL}?room=${encodeURIComponent(roomId)}`
     : window.location.href
 
-  return { gameState, localPlayerId, rematch, isHost: true, roomUrl }
+  const press = useCallback((code: string) => inputRef.current.press(code), [])
+  const release = useCallback((code: string) => inputRef.current.release(code), [])
+
+  return { gameState, localPlayerId, rematch, isHost: true, roomUrl, press, release }
 }
